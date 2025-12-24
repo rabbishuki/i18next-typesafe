@@ -1,6 +1,6 @@
 {
   "name": "i18next-typesafe",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Type-safe i18next wrapper for React with automatic type generation",
   "keywords": [
     "i18next",
