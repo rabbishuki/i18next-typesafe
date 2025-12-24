@@ -9,6 +9,7 @@ Type-safe i18next wrapper for React with automatic TypeScript type generation.
 - **Zero runtime overhead** - Types are compile-time only
 - **Simple API** - Uses familiar `react-i18next` under the hood
 - **CLI for type generation** - Automatically generate types from JSON files
+- **Built-in validation** - Find missing keys, unused translations, and cross-language mismatches
 
 ## Installation
 
@@ -95,7 +96,18 @@ return (
 );
 ```
 
-### Pattern 2: Full + Scoped (For Dynamic Keys)
+### Pattern 2: With Parameters
+
+i18next supports interpolation - pass parameters as the second argument:
+
+```typescript
+const [tForm] = useTypedTranslation(prefixes('form.newItem'));
+
+// Translation: "Item will be moved from catalog {{from}} to catalog {{to}}"
+return <p>{tForm('catalogChanged', { from: 'A', to: 'B' })}</p>;
+```
+
+### Pattern 3: Full + Scoped (For Dynamic Keys)
 
 When you need both static type-safe keys and dynamic runtime keys:
 
@@ -117,7 +129,7 @@ return (
 );
 ```
 
-### Pattern 3: Full Translator Only (Backward Compatible)
+### Pattern 4: Full Translator Only (Backward Compatible)
 
 For maximum flexibility, use the full translator:
 
@@ -153,39 +165,76 @@ npx i18next-typesafe generate -i locales/en.json -o types/translations.ts
 npx i18next-typesafe generate --watch
 ```
 
+### Validate Translations
+
+#### Run All Validations
+
+```bash
+npx i18next-typesafe validate [options]
+```
+
+Runs all validation checks: cross-language sync, unused blocks, and unused keys.
+
+**Options:**
+- `-l, --locales <path>` - Locales directory (default: `src/locales`)
+- `-s, --source <path>` - Source code directory (default: `src`)
+- `-i, --input <path>` - Input JSON file (default: `src/locales/en.json`)
+- `--languages <langs>` - Comma-separated language codes (default: `en,he,fr`)
+
+#### Individual Validation Commands
+
+**Check cross-language synchronization:**
+```bash
+npx i18next-typesafe validate:sync --languages en,he,fr
+```
+
+Finds keys that exist in one language but not in others.
+
+**Check for unused translation blocks:**
+```bash
+npx i18next-typesafe validate:blocks
+```
+
+Finds translation blocks/namespaces that aren't referenced in code via `useTypedTranslation(prefixes('block.name'))`.
+
+**Check for unused individual keys:**
+```bash
+npx i18next-typesafe validate:keys
+```
+
+Finds individual translation keys that aren't used anywhere in the code.
+
 ### Add to package.json
 
 ```json
 {
   "scripts": {
     "i18n:generate": "i18next-typesafe generate",
-    "i18n:watch": "i18next-typesafe generate --watch"
+    "i18n:watch": "i18next-typesafe generate --watch",
+    "i18n:validate": "i18next-typesafe validate",
+    "i18n:validate:sync": "i18next-typesafe validate:sync",
+    "i18n:validate:blocks": "i18next-typesafe validate:blocks",
+    "i18n:validate:keys": "i18next-typesafe validate:keys"
   }
 }
 ```
 
-## Integration with i18n-unused
+## Naming Convention
 
-`i18next-typesafe` works great with [i18n-unused](https://github.com/i18n-unused/i18n-unused) for finding unused/missing translations.
+For validation commands to work correctly, follow this naming convention:
 
-**i18n-unused.config.cjs:**
-
-```javascript
-module.exports = {
-  localesPath: 'src/locales',
-  srcPath: 'src',
-
-  // Detect both t() and tCamelCase() calls
-  translationKeyMatcher: /\b(?:t|t[A-Z]\w*)\(\s*['"`]([^'"`]+)['"`]/g,
-
-  translationSeparator: '.',
-};
-```
-
-**Naming Convention (Important for i18n-unused):**
-- ✅ `t` - full translator (detected)
-- ✅ `tPricing`, `tGeneral` - scoped translators (detected)
+- ✅ `t` - full translator (detected by validation)
+- ✅ `tPricing`, `tGeneral`, `tProduct` - scoped translators (detected)
 - ❌ `pricing`, `general` - won't be detected
+
+```typescript
+// ✅ GOOD - Will be detected by validate:keys
+const [t] = useTypedTranslation(prefixes(''));
+const [tPricing, tGeneral] = useTypedTranslation(prefixes('form.pricing', 'general'));
+
+// ❌ BAD - Won't be detected
+const [pricing, general] = useTypedTranslation(prefixes('form.pricing', 'general'));
+```
 
 ## TypeScript Configuration
 
@@ -238,4 +287,4 @@ MIT
 
 ## Contributing
 
-Contributions welcome! Please open an issue or PR.
+Contributions welcome! Please open an issue or PR on [GitHub](https://github.com/rabbishuki/i18next-typesafe).

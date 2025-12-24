@@ -7,10 +7,7 @@ interface GenerateOptions {
   watch?: boolean;
 }
 
-function flattenKeys(
-  obj: Record<string, any>,
-  prefix = ''
-): string[] {
+function flattenKeys(obj: Record<string, any>, prefix = ''): string[] {
   const keys: string[] = [];
 
   for (const [key, value] of Object.entries(obj)) {
