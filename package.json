@@ -1,0 +1,61 @@
+{
+  "name": "i18next-typesafe",
+  "version": "0.1.0",
+  "description": "Type-safe i18next wrapper for React with automatic type generation",
+  "keywords": [
+    "i18next",
+    "typescript",
+    "type-safe",
+    "react-i18next",
+    "i18n",
+    "translation",
+    "internationalization"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "i18next-typesafe": "./bin/i18next-typesafe.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "bin",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "react": ">=17.0.0",
+    "react-i18next": ">=12.0.0",
+    "i18next": ">=21.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2",
+    "tsup": "^8.3.5",
+    "commander": "^12.1.0"
+  },
+  "dependencies": {
+    "commander": "^12.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rabbishuki/i18next-typesafe.git"
+  },
+  "author": "rabbishuki",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
