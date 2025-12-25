@@ -1,10 +1,12 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { matchesPattern, type I18nextTypesafeConfig } from './config';
 
 interface ValidateKeysOptions {
   locales: string;
   source: string;
   input: string;
+  validation?: I18nextTypesafeConfig['validation'];
 }
 
 function flattenKeys(obj: Record<string, any>, prefix = ''): string[] {
@@ -102,9 +104,20 @@ export async function validateKeys(options: ValidateKeysOptions): Promise<void> 
   const usedKeys = searchSourceForKeys(source);
   console.log(`Found ${usedKeys.size} translation calls in code\n`);
 
-  // Find unused keys (excluding block prefixes which are checked separately)
+  // Get ignore patterns from config
+  const ignorePatterns = options.validation?.ignoreKeys || [];
+
+  // Find unused keys (excluding block prefixes and ignored patterns)
   const unusedKeys = Array.from(allKeys).filter(
-    key => !usedKeys.has(key) && !blockPrefixes.has(key)
+    key =>
+      !usedKeys.has(key) &&
+      !blockPrefixes.has(key) &&
+      !matchesPattern(key, ignorePatterns)
+  );
+
+  // Count ignored keys for reporting
+  const ignoredKeys = Array.from(allKeys).filter(key =>
+    matchesPattern(key, ignorePatterns)
   );
 
   // Group unused keys by block for better reporting
@@ -117,6 +130,11 @@ export async function validateKeys(options: ValidateKeysOptions): Promise<void> 
       unusedByBlock.set(blockPrefix, []);
     }
     unusedByBlock.get(blockPrefix)!.push(key);
+  }
+
+  // Report ignored keys if any
+  if (ignoredKeys.length > 0) {
+    console.log(`ℹ Ignoring ${ignoredKeys.length} keys (from config patterns)\n`);
   }
 
   // Report results
@@ -146,6 +164,9 @@ export async function validateKeys(options: ValidateKeysOptions): Promise<void> 
   } else {
     console.log('✓ All translation keys are being used!');
     console.log(`\n  Keys checked: ${allKeys.size}`);
+    if (ignoredKeys.length > 0) {
+      console.log(`  Ignored keys: ${ignoredKeys.length}`);
+    }
     console.log(`  All keys found in source code`);
   }
 }

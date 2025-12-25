@@ -139,6 +139,51 @@ const [t] = useTypedTranslation(prefixes(''));
 return <h2>{t('any.translation.key')}</h2>;
 ```
 
+## Configuration
+
+You can configure `i18next-typesafe` using a configuration file instead of CLI arguments. This is especially useful for complex setups or to ignore specific translation keys/blocks.
+
+Create a `.i18next-typesafe.json` or `i18next-typesafe.config.json` file in your project root:
+
+```json
+{
+  "input": "src/locales/en.json",
+  "output": "src/types/i18n.generated.ts",
+  "locales": "src/locales",
+  "source": "src",
+  "languages": ["en", "he", "fr"],
+  "validation": {
+    "ignoreKeys": [
+      "legacy.oldFeature.*",
+      "temp.debugging.message"
+    ],
+    "ignoreBlocks": [
+      "experimental.features",
+      "deprecated"
+    ]
+  }
+}
+```
+
+**Configuration options:**
+
+- `input` - Input JSON file path (default: `src/locales/en.json`)
+- `output` - Output TypeScript file path (default: `src/types/i18n.generated.ts`)
+- `locales` - Locales directory path (default: `src/locales`)
+- `source` - Source code directory path (default: `src`)
+- `languages` - Array of language codes (default: `["en", "he", "fr"]`)
+- `watch` - Watch mode for development (default: `false`)
+- `validation.ignoreKeys` - Array of key patterns to ignore during validation (supports wildcards with `*`)
+- `validation.ignoreBlocks` - Array of block prefixes to ignore during validation (supports wildcards with `*`)
+
+**CLI options take precedence** over configuration file values.
+
+You can also specify a custom config file path:
+
+```bash
+npx i18next-typesafe -c custom-config.json generate
+```
+
 ## CLI Commands
 
 ### Generate Types
@@ -148,6 +193,7 @@ npx i18next-typesafe generate [options]
 ```
 
 **Options:**
+- `-c, --config <path>` - Path to config file (global option)
 - `-i, --input <path>` - Input JSON file (default: `src/locales/en.json`)
 - `-o, --output <path>` - Output TypeScript file (default: `src/types/i18n.generated.ts`)
 - `-w, --watch` - Watch mode for development
@@ -158,11 +204,14 @@ npx i18next-typesafe generate [options]
 # Basic usage
 npx i18next-typesafe generate
 
-# Custom paths
+# Custom paths via CLI
 npx i18next-typesafe generate -i locales/en.json -o types/translations.ts
 
 # Watch mode for development
 npx i18next-typesafe generate --watch
+
+# Use custom config file
+npx i18next-typesafe -c my-config.json generate
 ```
 
 ### Validate Translations

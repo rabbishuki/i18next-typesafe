@@ -1,10 +1,12 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { matchesPattern, type I18nextTypesafeConfig } from './config';
 
 interface ValidateBlocksOptions {
   locales: string;
   source: string;
   input: string;
+  validation?: I18nextTypesafeConfig['validation'];
 }
 
 interface Block {
@@ -110,17 +112,32 @@ export async function validateBlocks(options: ValidateBlocksOptions): Promise<vo
   const blocks = getTranslationBlocks(translations);
   console.log(`Found ${blocks.length} translation blocks\n`);
 
+  // Get ignore patterns from config
+  const ignorePatterns = options.validation?.ignoreBlocks || [];
+
   // Check each block for usage
   const unusedBlocks: Block[] = [];
   const usedBlocks: Block[] = [];
+  const ignoredBlocks: Block[] = [];
 
   for (const block of blocks) {
+    // Check if block should be ignored
+    if (matchesPattern(block.prefix, ignorePatterns)) {
+      ignoredBlocks.push(block);
+      continue;
+    }
+
     const isUsed = searchSourceForPrefix(source, block.prefix);
     if (isUsed) {
       usedBlocks.push(block);
     } else {
       unusedBlocks.push(block);
     }
+  }
+
+  // Report ignored blocks if any
+  if (ignoredBlocks.length > 0) {
+    console.log(`ℹ Ignoring ${ignoredBlocks.length} blocks (from config patterns)\n`);
   }
 
   // Report results
@@ -138,6 +155,9 @@ export async function validateBlocks(options: ValidateBlocksOptions): Promise<vo
   } else {
     console.log('✓ All translation blocks are being used!');
     console.log(`\n  Blocks checked: ${blocks.length}`);
+    if (ignoredBlocks.length > 0) {
+      console.log(`  Ignored blocks: ${ignoredBlocks.length}`);
+    }
     console.log(`  All blocks found in source code`);
   }
 }
